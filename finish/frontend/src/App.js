@@ -1,14 +1,27 @@
 import logo from "./logo.svg";
 import "./App.css";
-import { useState } from "react";
-import { ethers } from "ethers";
+import { useState, useEffect } from "react";
+import { BigNumber, ethers } from "ethers";
 import firstContract from "./Counter.json";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState("Sign In");
   const [currentAccount, setCurrentAccount] = useState();
   const [contract, setContract] = useState();
-  const contractAddress = "0x719B4d6833987EcBd7b27C8256d40006eAE684Fb"
+  const contractAddress = "0x719B4d6833987EcBd7b27C8256d40006eAE684Fb";
+  let signer;
+
+  const getCount = async () => {
+    let count = await contract.get();
+    setCount(BigNumber.from(count).toNumber());
+  };
+
+  useEffect(() => {
+    if (contract == undefined) return;
+    console.log("calling contract");
+    getCount();
+    console.log("called contract");
+  }, [contract]);
 
   const onClickConnect = async () => {
     if (!window.ethereum) {
@@ -23,20 +36,35 @@ function App() {
       })
       .catch((e) => console.log(e));
 
-    setContract(new ethers.Contract(contractAddress ,firstContract.abi, provider))
+    signer = provider.getSigner();
+    
+    setContract(
+      new ethers.Contract(contractAddress, firstContract.abi, signer)
+    );
   };
-  
-  async function increase(){
-    if(contract == undefined){return}
-    const tx = await contract.inc()
-    console.log(tx);
-    setCount(await contract.get())  
+
+  async function increase() {
+    if (contract == undefined) {
+      return;
+    }
+    // increase count by calling inc() function in the contract
+    console.log("increasing count")
+    await contract.inc();
+    // update count
+    getCount();
   }
-  
-  async function decrease(){
-    if(contract == undefined){return}
-    await contract.dec()
-    setCount(await contract.get())  
+
+  async function decrease() {
+    if (contract == undefined) {
+      return;
+    }
+    // decrease count by calling inc() function in the contract
+    console.log("decreasing count")
+    const tx = await contract.dec();
+    tx.wait();
+    console.log("getting count")
+    // update count
+    getCount();
   }
 
   return (
