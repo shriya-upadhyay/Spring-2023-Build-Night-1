@@ -2,10 +2,13 @@ import logo from "./logo.svg";
 import "./App.css";
 import { useState } from "react";
 import { ethers } from "ethers";
+import firstContract from "./Counter.json";
 
 function App() {
   const [count, setCount] = useState(0);
   const [currentAccount, setCurrentAccount] = useState();
+  const [contract, setContract] = useState();
+  const contractAddress = "0x719B4d6833987EcBd7b27C8256d40006eAE684Fb"
 
   const onClickConnect = async () => {
     if (!window.ethereum) {
@@ -19,7 +22,22 @@ function App() {
         if (accounts.length > 0) setCurrentAccount(accounts[0]);
       })
       .catch((e) => console.log(e));
+
+    setContract(new ethers.Contract(contractAddress ,firstContract.abi, provider))
   };
+  
+  async function increase(){
+    if(contract == undefined){return}
+    const tx = await contract.inc()
+    console.log(tx);
+    setCount(await contract.get())  
+  }
+  
+  async function decrease(){
+    if(contract == undefined){return}
+    await contract.dec()
+    setCount(await contract.get())  
+  }
 
   return (
     <div className="App">
@@ -31,13 +49,13 @@ function App() {
           <div>
             <button
               className="mx-8 rounded-2xl py-1 px-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:bg-gradient-to-l"
-              onClick={() => setCount(count + 1)}
+              onClick={increase}
             >
               Increase
             </button>
             <button
               className="mx-8 rounded-2xl py-1 px-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:bg-gradient-to-l"
-              onClick={() => setCount(count - 1)}
+              onClick={decrease}
             >
               Decrease
             </button>
