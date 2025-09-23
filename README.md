@@ -110,13 +110,271 @@
 ### Setting up Hardhat
 - What is Hardhat? 
     JavaScript-based framework to compile, test, deploy smart contracts. 
-- Run the command `npm install -d hardhat@latest @nomicfoundation/hardhat-ethers ethers@6.1.0`
-  - Installs Hardhat, Hardhat plugin for ethers.js, and the ethers.js library
-- Run the command: `npx hardhat init`
-  - Select Typescript Project 
-  - project root is the current directory (hit enter)
-  - add gitignore: y 
-  - Install this sample project’s dependencies with npm: y
+- Run the command: `npx hardhat --init`
+- Choose Hardhat 3 Beta
+- project root is the current directory (hit enter)
+- Select Typescript Project using Mocha and Ethers.js
+- Hit true for installing necessary dependencies
+
+
+### Smart Contract
+- Inside of blockchain/contracts, delete Lock.sol and create a file called **firstDapp.sol** and copy the following code into the file: 
+    ```solidity
+    //SPDX-License-Identifier: MIT
+    pragma solidity^0.8.17;
+    ```
+    This initializes the compiler version and licensing.
+- Create the contract
+    ```solidity
+    contract Counter {
+
+    }
+    ```
+- Add necessary on-chain data members to the contract
+
+    ```solidity
+    uint public count;
+    ```
+    This is an unsigned, public integer called count.
+- Add the counter increment function:
+    ```solidity
+    function get() public view returns (uint) {
+        return count;
+    }
+    ```
+    This is a public function that cannot modify state. It returns a uint which is the count variable. We don't need the memory keyword here because uint is always passed by value instead of by reference.
+
+- Add the counter increment function:
+    ```solidity
+    function inc() public {
+        count +=1;
+    }
+    ```
+    This is a public function that modifies the state of the count variable.
+
+- Add the counter decrement function:
+    ```solidity
+    function dec() public {
+        //This function will fail if count <= 0
+        count -=1;
+    }
+    ```
+    This is a public function that modifies the state of the count variable.
+
+
+### Add your private key and environment variables
+- run `npm install dotenv` in your terminal
+- Create a .env file in your blockchain folder and add your private key to it in this format:  `PRIVATE_KEY=Private_KEY` (no quotes)
+
+- Navigate to Alchemy, create an account, and navigate to dashboard: https://dashboard.alchemy.com/
+- Navigate to Apps and click create new app, select the Ethereum Chain, Hit next on the services page
+- On the Integrate your app page, select Sepolia as the Network
+- Navigate to Neworks page, change the drop down to Sepolia and copy the URL
+
+- Add the URL to your .env file in this format: `RPC_URL=URL` (no quotes)
+
+- Update your hardhat.config.ts file to reference these values like this:  (make sure to import dotenv/config)
+
+```typescript
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import "dotenv/config";
+
+const Private_Key = process.env.PRIVATE_KEY || "";
+const RPC_URL = process.env.RPC_URL || "";
+
+const config: HardhatUserConfig = {
+  solidity: "0.8.18",
+  networks: {
+    sepolia: {
+      type: "http",
+      url: RPC_URL,
+      accounts: Private_Key ? [`0x${Private_Key}`] : [],
+    },
+  },
+};
+
+export default config;
+```
+
+### Creating a deployment script:
+- Within the blockchain folder, create a folder called scripts and within scripts create a file called **deploy.ts** which will allow hardhat to deploy our contract
+- Add the following code to deploy.ts:
+
+```typescript
+// scripts/deploy.ts
+
+import { ethers } from "ethers";
+import hre from "hardhat";
+
+async function main() {
+    console.log("Deploying Counter contract to Sepolia...");
+    
+    // Create provider and wallet using environment variables
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+
+    //check if private key exists
+    if (!process.env.PRIVATE_KEY) {
+        throw new Error("PRIVATE_KEY environment variable is not set");
+    }
+
+    //create ethers wallet using prviate key and RPC provider
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    
+    // Get the contract artifacts (the ABI and bytecode that were generated from the compilation)
+    const counterArtifact = await hre.artifacts.readArtifact("Counter");
+    
+    // Create contract factory using user's private key, abi, and bytecode of the contract
+    const Counter = new ethers.ContractFactory(
+        counterArtifact.abi,
+        counterArtifact.bytecode,
+        wallet
+    );
+    
+    // Deploy the contract
+    const counter = await Counter.deploy();
+    await counter.waitForDeployment();
+    
+    console.log(`Counter contract deployed to: ${await counter.getAddress()}`);
+}
+
+main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+});
+
+```
+
+
+### Compile your contract
+In terminal (in the blockchain directory), run `npx hardhat compile`
+
+
+### Deploy your contract
+In terminal (in the blockchain directory), run `npx hardhat run scripts/deploy.ts --network sepolia`
+
+You should see an output like `Deploying Counter contract to Sepolia... Counter contract deployed to: 0xFC045EA72FEb94531f98f3B3bB7EE09F0650c934`
+
+***Save*** your contract address. We will need it again later.
+
+
+## Integrating with Frontend
+- Navigate to frontend folder in terminal
+- Run npm install
+- Run npm run start
+- Copy the Counter.json file from the artifacts/contracts folder in the blockchain folder into the src folder in the frontend
+- Add import firstContract from "./Counter.json"; at the top of the App.js file
+
+## Create a contract object in App.js
+- At the very top of function App() {
+    }, add the follwing code to store our contract info:
+    `const contractAddress = "0xFC045EA72FEb94531f98f3B3bB7EE09F0650c934";` and `let signer;` directly below it
+- Add your address from earlier into the contract address variable.
+- Update the onClickConnect function so that it looks like this:
+
+```solidity
+const onClickConnect = async () => {
+    if (!window.ethereum) {
+      alert("please install MetaMask");
+      return;
+    }
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    provider
+      .send("eth_requestAccounts", [])
+      .then((accounts) => {
+        if (accounts.length > 0) setCurrentAccount(accounts[0]);
+      })
+      .catch((e) => console.log(e));
+
+      signer = provider.getSigner();
+      setContract( 
+        new ethers.Contract(contractAddress, firstContract.abi, signer)
+      );
+  };
+```
+Note how the last two lines store the signer, an object that can sign transactions on behalf of the connected wallet account and create a contract object using your contract's address, its ABI, and your signer information.
+
+## Store number returned by Contract
+
+- Add the following two imports at the top of your file: `import { useState, useEffect } from "react";` and `import { ethers, BigNumber } from "ethers";`
+- Create another function getCount in App.js to store the value returned by the contract:
+
+```javascript
+const getCount = async () => {
+    let count = await contract.get();
+    setCount(BigNumber.from(count).toNumber());
+};
+
+```
+
+- Ensure that getCount is called initially when the user connects their wallet using a useEffect hook in App.js. Add the following code in your App function
+
+```javascript
+useEffect(() => {
+    if (contract == undefined) return;
+    console.log("Getting initial count from contract");
+    getCount();
+    console.log("Initial count received");
+}, [contract]);
+
+```
+
+
+## Create increase and decrease functions
+Add the following additional functions to your App.js to force the increase and decrease buttons to call your smart contract:
+
+```javascript
+async function increase() {
+    if (contract == undefined) {
+        return;
+    }
+
+    console.log("increasing count");
+    const tx = await contract.inc();
+    await tx.wait();
+    console.log("getting count");
+    //update count in frontend
+    getCount();
+}
+```
+
+```javascript
+async function decrease() {
+    if (contract == undefined) {
+        return;
+    }
+    console.log("decreasing count");
+    const tx = await contract.dec();
+    await tx.wait();
+    console.log("getting count");
+    //update count in frontend
+    getCount();
+}
+```
+
+## Update your buttons to call these functions
+
+Change this line of code to say onClick = {increase} as shown below:
+```HTML
+<button className="mx-8 rounded-2xl py-1 px-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:bg-gradient-to-l" onClick={increase} > Increase </button>
+```
+
+Change this line of code to say onClick = {decrease} as shown below:
+
+```HTML
+ <button className="mx-8 rounded-2xl py-1 px-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:bg-gradient-to-l" onClick={decrease} > Decrease </button>
+```
+
+
+# Try out your counter app!
+
+
+
+
+
+
+
+
 
 
 
