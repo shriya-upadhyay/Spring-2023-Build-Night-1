@@ -92,7 +92,7 @@
 ## Counter dApp 🔢
 
 ### Environment Setup:
-- Install [Visual Studio Code](https://code.visualstudio.com/)
+- Install [Visual Studio Code](https://code.visualstudio.com/) (or your favorite IDE)
 - Install [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) if you have windows
 - Install [Node/npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm#using-a-node-version-manager-to-install-nodejs-and-npm) (I used Node Version Manager but you can also use Homebrew/Node installer)
 - Fork the Build Night 1 repo at [this](https://github.com/BlockchainUSC/Spring-2023-Build-Night-1) link
