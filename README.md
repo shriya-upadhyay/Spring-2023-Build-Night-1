@@ -94,6 +94,7 @@
 ### Environment Setup:
 - Install [Visual Studio Code](https://code.visualstudio.com/)
 - Install [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) if you have windows
+- Install [Node/npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm#using-a-node-version-manager-to-install-nodejs-and-npm) (I used Node Version Manager but you can also use Homebrew/Node installer)
 - Fork the Build Night 1 repo at [this](https://github.com/BlockchainUSC/Spring-2023-Build-Night-1) link
 - Navigate to the folder where you want to store your repo in your terminal
 - Clone the repo by typing `git clone <URL>`, where `<URL>` is the link that appears after hitting the green **Code** button in the top right of your repo.
