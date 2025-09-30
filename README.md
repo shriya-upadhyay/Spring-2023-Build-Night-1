@@ -111,7 +111,7 @@
 ### Setting up Hardhat
 - What is Hardhat? 
     JavaScript-based framework to compile, test, deploy smart contracts. 
-- Run the command: `npx hardhat init`
+- Run the command: `npx hardhat --init`
 - Choose Hardhat 3 Beta
 - project root is the current directory (hit enter)
 - Select Typescript Project using Mocha and Ethers.js
