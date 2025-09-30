@@ -313,7 +313,7 @@ const getCount = async () => {
 
 ```javascript
 useEffect(() => {
-    if (contract == undefined) return;
+    if (contract === undefined) return;
     console.log("Getting initial count from contract");
     getCount();
     console.log("Initial count received");
@@ -327,7 +327,7 @@ Add the following additional functions to your App.js to force the increase and 
 
 ```javascript
 async function increase() {
-    if (contract == undefined) {
+    if (contract === undefined) {
         return;
     }
 
@@ -342,7 +342,7 @@ async function increase() {
 
 ```javascript
 async function decrease() {
-    if (contract == undefined) {
+    if (contract === undefined) {
         return;
     }
     console.log("decreasing count");
