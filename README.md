@@ -173,6 +173,7 @@
 - Navigate to Neworks page, change the drop down to Sepolia and copy the URL
 
 - Add the URL to your .env file in this format: `RPC_URL=URL` (no quotes)
+      - RPC stands for Remote Procedure Call. It allows our app to get information from and send information to the blockchain (in this case Sepolia). We will use it to deploy our contract to the Sepolia blockchain so everyone who accesses the blockchain can see our contract deployed.
 
 - Update your hardhat.config.ts file to reference these values like this:  (make sure to import dotenv/config)
 
@@ -294,6 +295,15 @@ const onClickConnect = async () => {
       );
   };
 ```
+
+A provider is your application's way of reading from the Ethereum blockchain. window.ethereum is a javascript object injected by your wallet (Metamask, Coinbase, etc. on installation). Web3Provider converts methods from window.ethereum into methods that ethers.js can work with. 
+
+Then, it requeests access to all of the user's accounts in their wallet and chooses the first connected account to use in this app. The Metamask popup appears for the user to connect or cancel.
+
+The signer object allows the app to sign transactions from the account using the app.
+
+Lastly, the new ethers Contract creates an object that allows you to interact with your contract by taking in a few key parameters: the contract's address, the contract's ABI (Application Binary Interface) --> a json with all of the functions, events, varibales, and the signer (who will be interacting with the contract). 
+
 Note how the last two lines store the signer, an object that can sign transactions on behalf of the connected wallet account and create a contract object using your contract's address, its ABI, and your signer information.
 
 ## Store number returned by Contract
