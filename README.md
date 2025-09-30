@@ -119,7 +119,7 @@
 
 
 ### Smart Contract
-- Inside of blockchain/contracts, delete Lock.sol and create a file called **firstDapp.sol** and copy the following code into the file: 
+- Inside of blockchain/contracts, delete Counter.sol (we'll write our own counter) and create a file called **firstDapp.sol** and copy the following code into the file: 
     ```solidity
     //SPDX-License-Identifier: MIT
     pragma solidity^0.8.17;
